@@ -60,7 +60,7 @@ private:
 
     // ONNX Runtime components
     Ort::Env env{ORT_LOGGING_LEVEL_WARNING, "StableDiffusion"};
-    Ort::SessionOptions text_session,unet_session,vae_encoder_session,vae_decoder_session,tokenizer_session;
+    Ort::SessionOptions text_session,unet_session,vae_decoder_session,tokenizer_session;
     std::unique_ptr<Ort::Session> text_encoder;
     std::unique_ptr<Ort::Session> unet;
     std::unique_ptr<Ort::Session> vae_encoder;

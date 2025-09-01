@@ -98,21 +98,6 @@ void StableDiffusionPipeline::initialize_models() {
             unet_session);
         std::cout << "UNet loaded\n";
 
-        // Load VAE encoder
-        auto vae_encoder_path = model_dir / "vae_encoder" / "model.onnx";
-        if (!fs::exists(vae_encoder_path)) {
-            throw std::runtime_error("VAE encoder model not found: " + vae_encoder_path.string());
-        }
-        g_ort_api->AddFreeDimensionOverrideByName(vae_encoder_session, "batch", 1);
-        g_ort_api->AddFreeDimensionOverrideByName(vae_encoder_session, "channels", 3);
-        g_ort_api->AddFreeDimensionOverrideByName(vae_encoder_session, "height", 512);
-        g_ort_api->AddFreeDimensionOverrideByName(vae_encoder_session, "width", 512);
-        vae_encoder_session.AppendExecutionProvider("NvTensorRTRTXExecutionProvider", provider_options);
-        vae_encoder = std::make_unique<Ort::Session>(env,
-            vae_encoder_path.wstring().c_str(),
-            vae_encoder_session);
-        std::cout << "VAE encoder loaded\n";
-
         // Load VAE decoder
         auto vae_decoder_path = model_dir / "vae_decoder" / "model.onnx";
         if (!fs::exists(vae_decoder_path)) {
