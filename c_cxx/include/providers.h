@@ -12,3 +12,6 @@
 #ifdef USE_DML
 #include "dml_provider_factory.h"
 #endif
+#ifdef USE_NV
+#include "nv_provider_factory.h"
+#endif
