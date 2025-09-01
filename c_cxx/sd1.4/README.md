@@ -8,6 +8,6 @@
 * Open .sln in Visual Studio and build sd_pipeline project
 
 ## Execution
-* Copy `cudart64_12.dll, onnxruntime.dll, onnxruntime_providers_nv_tensorrt_rtx.dll, onnxruntime_providers_shared.dll, ortextensions.dll` and TRT-RTX dlls to the build folder
-* Setup SD 1.4 onnx model folder with clip tokenizer model
+* Copy `cudart64_12.dll, onnxruntime.dll, onnxruntime_providers_nv_tensorrt_rtx.dll, onnxruntime_providers_shared.dll` and TRT-RTX dlls to the build folder
+* Setup SD 1.4 onnx model folder with clip tokenizer model in tokenizer folder, and ortextensions.dll in the parent model folder
 * Run using `sd_pipeline.exe --model_path "D:\repos\stable-diffusion-v1-4" --prompt "a rock concert" --output output.png`
