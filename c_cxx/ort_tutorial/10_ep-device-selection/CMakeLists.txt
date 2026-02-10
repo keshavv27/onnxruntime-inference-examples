@@ -12,6 +12,7 @@ add_executable(ep-device-selection
 
 set_target_properties(ep-device-selection PROPERTIES
     CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
     CXX_EXTENSIONS OFF
     )
 target_link_libraries(ep-device-selection PRIVATE

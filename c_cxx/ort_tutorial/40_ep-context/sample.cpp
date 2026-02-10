@@ -3,10 +3,9 @@
 #include <chrono>
 #include <filesystem>
 #include <unordered_map>
-#include <onnxruntime/core/graph/constants.h>
-#include <onnxruntime/core/session/onnxruntime_cxx_api.h>
-#include <onnxruntime/core/session/onnxruntime_run_options_config_keys.h>
-#include <onnxruntime/core/session/onnxruntime_session_options_config_keys.h>
+#include <onnxruntime_cxx_api.h>
+#include <onnxruntime_run_options_config_keys.h>
+#include <onnxruntime_session_options_config_keys.h>
 
 /**
  * @brief A generic utility to measure the execution time of a function.
@@ -40,7 +39,7 @@ int main(int argc, char* argv[]) {
     std::filesystem::path input_model_path = argv[1];
     std::filesystem::path output_model_path = argv[2];
     int embed_mode = 0; // Default: embed engine
-    std::string provider = onnxruntime::kNvTensorRTRTXExecutionProvider; // Default provider
+    std::string provider = "NvTensorRTRTXExecutionProvider";  // Default provider
 
     // Automatically create a runtime cache directory for demonstration.
     const std::filesystem::path runtime_cache_dir = "ort_runtime_cache";

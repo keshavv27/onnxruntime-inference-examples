@@ -5,11 +5,11 @@
 #include <chrono>
 #include <unordered_map>
 #include <filesystem>
-#include <onnxruntime/core/graph/constants.h>
-#include <onnxruntime/core/session/onnxruntime_cxx_api.h>
-#include <onnxruntime/core/session/onnxruntime_run_options_config_keys.h>
-#include <onnxruntime/core/session/onnxruntime_session_options_config_keys.h>
-#include <onnxruntime/core/providers/nv_tensorrt_rtx/nv_provider_options.h>
+
+#include <onnxruntime_cxx_api.h>
+#include <onnxruntime_run_options_config_keys.h>
+#include <onnxruntime_session_options_config_keys.h>
+#include <nv_provider_options.h>
 
 namespace fs = std::filesystem;
 
@@ -52,7 +52,7 @@ int main(int argc, char* argv[]) {
     fs::path output_model_path = argv[3];
     fs::path external_data_filename_path = argv[4];
     int embed_mode = 0;
-    std::string provider = onnxruntime::kNvTensorRTRTXExecutionProvider;
+    std::string provider = "NvTensorRTRTXExecutionProvider";
 
     if (argc >= 6) {
         embed_mode = std::stoi(argv[5]);
@@ -87,7 +87,7 @@ int main(int argc, char* argv[]) {
         Ort::SessionOptions session_options;
 
         // Configure execution provider based on provider type
-        if (provider == onnxruntime::kNvTensorRTRTXExecutionProvider) {
+        if (provider == "NvTensorRTRTXExecutionProvider") {
             // Using the new provider option for this specific EP
             std::unordered_map<std::string, std::string> option_map{
                 {onnxruntime::nv::provider_option_names::kUseExternalDataInitializer, "1"}

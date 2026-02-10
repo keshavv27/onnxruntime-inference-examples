@@ -8,11 +8,14 @@
 #include <exception>
 
 #include <cuda_runtime.h>
-#include <onnxruntime/core/graph/constants.h>
-#include <onnxruntime/core/session/onnxruntime_cxx_api.h>
-#include <onnxruntime/core/session/onnxruntime_run_options_config_keys.h>
-#include <onnxruntime/core/session/onnxruntime_session_options_config_keys.h>
+
+#include <onnxruntime_cxx_api.h>
+#include <onnxruntime_run_options_config_keys.h>
+#include <onnxruntime_session_options_config_keys.h>
 #include <stdio.h>
+
+#include <filesystem>
+#include <string>
 
 #include "utils.h"
 
@@ -25,9 +28,12 @@ static OrtFileString toOrtFileString(const std::filesystem::path& path) {
 }
 
 // The dimensions of the image file we are loading from disk
-constexpr int LOADED_IMAGE_DIM = 1080;
+constexpr int LOADED_IMAGE_DIM = 224;
 // The dimensions of the sub-region we will run inference on. Using whole image for inference.
-constexpr int INFERENCE_IMAGE_DIM = 1080;
+constexpr int INFERENCE_IMAGE_DIM = 224;
+
+const char* kNvTensorRTRTXExecutionProvider = "NvTensorRTRTXExecutionProvider";
+const char* kCpuExecutionProvider = "CPUExecutionProvider";
 
 // Use pinned (page-locked) memory for the large input buffer to enable true async HtoD copies
 // The output buffer does not need to be pinned
@@ -43,11 +49,11 @@ int main() {
     sessionOptions.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_ALL);
     CHECK_ORT(ortApi.AddFreeDimensionOverrideByName(sessionOptions, "batch_size", 1));
 
-    std::string trtLibPath = get_executable_parent_path() / DLL_NAME("onnxruntime_providers_nv_tensorrt_rtx");
+    auto trtLibPath = get_executable_path().parent_path() / DLL_NAME("onnxruntime_providers_nv_tensorrt_rtx");
     CHECK_ORT(
         ortApi.RegisterExecutionProviderLibrary(ortEnvironment, "NvTensorRtRtx", toOrtFileString(trtLibPath).c_str()));
 
-    std::string cudaLibPath = get_executable_parent_path() / DLL_NAME("onnxruntime_providers_cuda");
+    auto cudaLibPath = get_executable_path().parent_path() / DLL_NAME("onnxruntime_providers_cuda");
     if (std::filesystem::is_regular_file(cudaLibPath)) {
       try {
         CHECK_ORT(ortApi.RegisterExecutionProviderLibrary(ortEnvironment, "Cuda", toOrtFileString(cudaLibPath).c_str()));
@@ -62,7 +68,7 @@ int main() {
     CHECK_ORT(ortApi.GetEpDevices(ortEnvironment, &ep_devices, &num_ep_devices));
     const OrtEpDevice* trt_ep_device = nullptr;
     for (uint32_t i = 0; i < num_ep_devices; i++) {
-      if (strcmp(ortApi.EpDevice_EpName(ep_devices[i]), onnxruntime::kNvTensorRTRTXExecutionProvider) == 0) {
+      if (strcmp(ortApi.EpDevice_EpName(ep_devices[i]), kNvTensorRTRTXExecutionProvider) == 0) {
         trt_ep_device = ep_devices[i];
         break;
       }
@@ -87,7 +93,7 @@ int main() {
     const char* option_keys[] = {"user_compute_stream", "has_user_compute_stream"};
     const char* option_values[] = {streamAddress.c_str(), "1"};
     for (size_t i = 0; i < num_ep_devices; i++) {
-      if (strcmp(ortApi.EpDevice_EpName(ep_devices[i]), onnxruntime::kCpuExecutionProvider) != 0)
+      if (strcmp(ortApi.EpDevice_EpName(ep_devices[i]), kCpuExecutionProvider) != 0)
         CHECK_ORT(ortApi.SessionOptionsAppendExecutionProvider_V2(sessionOptions, ortEnvironment, &ep_devices[i], 1,
                                                                   option_keys, option_values, 2));
     }
@@ -116,8 +122,10 @@ int main() {
     Ort::AllocatedStringPtr InputTensorName = session.GetInputNameAllocated(0, cpu_allocator);
     Ort::AllocatedStringPtr OutputTensorName = session.GetOutputNameAllocated(0, cpu_allocator);
 
-    loadInputImage(cpuInputFloat, (char*)((get_executable_parent_path() / "Input.png").c_str()), false);
-
+    auto img_path = "Input_resized.png";
+    std::cout << "Loading image\n";
+    loadInputImage(cpuInputFloat, (char*)img_path, false);
+    std::cout << "Image load complete\n";
     std::vector<int64_t> full_shape{1, 3, LOADED_IMAGE_DIM, LOADED_IMAGE_DIM};
     std::vector<int64_t> inference_shape{1, 3, INFERENCE_IMAGE_DIM, INFERENCE_IMAGE_DIM};
 
@@ -186,7 +194,7 @@ int main() {
     Ort::IoBinding iobinding(session);
     iobinding.BindInput(InputTensorName.get(), input_tensors[0]);
     iobinding.BindOutput(OutputTensorName.get(), output_tensors[0]);
-
+    std::cout<<"session run\n";
     session.Run(Ort::RunOptions{}, iobinding);
 
     std::vector<const OrtValue*> output_src_tensor_ptrs = {output_tensors[0]};
@@ -194,8 +202,10 @@ int main() {
     CHECK_ORT(ortApi.CopyTensors(ortEnvironment, output_src_tensor_ptrs.data(), output_dst_tensor_ptrs.data(),
                                  upload_stream, 1));
 
-    saveOutputImage(cpuOutputFloat.data(), (char*)((get_executable_parent_path() / "output.png").c_str()), false);
-
+    auto output_path = "output.png";
+    std::cout<<"Saving output image\n";
+    saveOutputImage(cpuOutputFloat.data(), (char*)output_path, false);
+    std::cout<<"Output image saved\n";
     uploadNotification->Release(uploadNotification);
     ortApi.ReleaseMemoryInfo(input_memory_info_agnostic);
   } catch (const Ort::Exception& e) {

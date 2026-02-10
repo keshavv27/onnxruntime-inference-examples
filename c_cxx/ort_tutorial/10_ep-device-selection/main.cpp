@@ -1,7 +1,6 @@
-#include <onnxruntime/core/graph/constants.h>
-#include <onnxruntime/core/session/onnxruntime_cxx_api.h>
-#include <onnxruntime/core/session/onnxruntime_run_options_config_keys.h>
-#include <onnxruntime/core/session/onnxruntime_session_options_config_keys.h>
+#include <onnxruntime_cxx_api.h>
+#include <onnxruntime_run_options_config_keys.h>
+#include <onnxruntime_session_options_config_keys.h>
 
 #include <cstdint>
 #include <cstdlib>

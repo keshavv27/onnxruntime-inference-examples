@@ -54,7 +54,7 @@ std::filesystem::path get_executable_path() {
 }
 
 using half_float::half;
-constexpr int image_dim = 1080;
+constexpr int image_dim = 224;
 
 void loadInputImage(void* pData, char* imageFileName, bool fp16) {
   half* hData = (half*)pData;
@@ -66,6 +66,7 @@ void loadInputImage(void* pData, char* imageFileName, bool fp16) {
       lodepng_decode32_file(&image, &width, &height, imageFileName);
   if (error) {
     printf("\nFailed to load the input image. Exiting\n");
+    lodepng_error_text(error);
     exit(0);
   }
 

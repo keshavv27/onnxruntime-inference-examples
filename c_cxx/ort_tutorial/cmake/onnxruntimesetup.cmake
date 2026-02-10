@@ -16,16 +16,16 @@ else()
   if(WIN32)
     find_file(ONNXRUNTIME_DLL onnxruntime.dll HINTS ${ONNX_RUNTIME_PATH} ${ONNX_RUNTIME_PATH}/lib REQUIRED)
     find_file(ONNXRUNTIME_PROVIDERS_SHARED_DLL onnxruntime_providers_shared.dll HINTS ${ONNX_RUNTIME_PATH} ${ONNX_RUNTIME_PATH}/lib REQUIRED)
-    find_file(ONNXRUNTIME_TRT_EP_DLL onnxruntime_providers_n    v_tensorrt_rtx.dll HINTS ${ONNX_RUNTIME_PATH} ${ONNX_RUNTIME_PATH}/lib REQUIRED)
+    find_file(ONNXRUNTIME_TRT_EP_DLL onnxruntime_providers_nv_tensorrt_rtx.dll HINTS ${ONNX_RUNTIME_PATH} ${ONNX_RUNTIME_PATH}/lib REQUIRED)
     find_file(ONNXRUNTIME_CUDA_EP_DLL onnxruntime_providers_cuda.dll HINTS ${ONNX_RUNTIME_PATH} ${ONNX_RUNTIME_PATH}/lib)
 
     find_file(TRTRTX_DLL NAMES tensorrt_rtx_1_1.dll tensorrt_rtx_1_2.dll tensorrt_rtx_1_3.dll HINTS ${TRTRTX_RUNTIME_PATH} ${TRTRTX_RUNTIME_PATH}/lib)
   else()
-    find_library(TRTRTX_LIB NAMES tensorrt_rtx tensorrt_rtx_1_1 tensorrt_rtx_1_2 tensorrt_rtx_1_3 HINTS ${TRTRTX_RUNTIME_PATH} ${TRTRTX_RUNTIME_PATH}/lib)
+    find_library(TRTRTX_LIB NAMES libtensorrt_rtx.so.1 HINTS ${TRTRTX_RUNTIME_PATH} ${TRTRTX_RUNTIME_PATH}/lib)
   endif()
 
   find_path(ONNXRUNTIME_INCLUDE
-      onnxruntime/core/session/onnxruntime_cxx_api.h
+      onnxruntime_cxx_api.h
       HINTS ${ONNX_RUNTIME_PATH}/include
       REQUIRED)
   add_library(onnxruntime_interface INTERFACE)
@@ -34,6 +34,7 @@ else()
 
   message(STATUS "ONNX runtime include \"${ONNXRUNTIME_INCLUDE}\"")
   message(STATUS "ONNX runtime lib \"${ONNXRUNTIME_LIB}\"")
+  message(STATUS "TRTRTX lib \"${TRTRTX_LIB}\"")
 endif()
 
 set(RUNTIME_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
@@ -66,10 +67,11 @@ else()
     copy_file_to_bin_dir(${ONNXRUNTIME_LIB})
     copy_file_to_bin_dir(${ONNXRUNTIME_PROVIDERS_SHARED_LIB})
     copy_file_to_bin_dir(${ONNXRUNTIME_TRT_EP_LIB})
-    if (TRTRTX_DLL)
+    if (TRTRTX_LIB)
         copy_file_to_bin_dir(${TRTRTX_LIB})
     endif()
     if(ONNXRUNTIME_CUDA_EP_LIB)
         copy_file_to_bin_dir(${ONNXRUNTIME_CUDA_EP_LIB})
     endif()
 endif()
+

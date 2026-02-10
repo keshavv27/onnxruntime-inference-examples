@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <format>
 #include <iostream>
+#include <algorithm>
 
 #ifndef __cpp_lib_format
 #error                                                                         \

@@ -52,7 +52,7 @@ std::filesystem::path get_executable_path() {
 }
 
 using half_float::half;
-constexpr int image_dim = 1080;
+constexpr int image_dim = 224;
 
 void loadInputImage(void* pData, char* imageFileName, bool fp16) {
   half* hData = (half*)pData;

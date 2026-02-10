@@ -9,12 +9,13 @@
 #include <cstdlib>
 #include <filesystem>
 #include <string>
-constexpr int image_dim = 1080;
+constexpr int image_dim = 224;
 
-#include <onnxruntime/core/graph/constants.h>
-#include <onnxruntime/core/session/onnxruntime_cxx_api.h>
-#include <onnxruntime/core/session/onnxruntime_run_options_config_keys.h>
-#include <onnxruntime/core/session/onnxruntime_session_options_config_keys.h>
+
+
+#include <onnxruntime_cxx_api.h>
+#include <onnxruntime_run_options_config_keys.h>
+#include <onnxruntime_session_options_config_keys.h>
 #include <stdio.h>
 
 #include <format>
@@ -81,7 +82,7 @@ int main() {
     const OrtEpDevice* trt_ep_device = nullptr;
     for (uint32_t i = 0; i < num_ep_devices; i++) {
       if (strcmp(ortApi.EpDevice_EpName(ep_devices[i]),
-                 onnxruntime::kNvTensorRTRTXExecutionProvider) ==
+                 "NvTensorRTRTXExecutionProvider") ==
           0)  // checking sysnc_stream working only with TRTRTX EP
       {
         trt_ep_device = ep_devices[i];
@@ -108,7 +109,7 @@ int main() {
     const char* option_keys[] = {"user_compute_stream", "has_user_compute_stream"};
     const char* option_values[] = {streamAddress.c_str(), "1"};
     for (size_t i = 0; i < num_ep_devices; i++) {
-      if (strcmp(ortApi.EpDevice_EpName(ep_devices[i]), onnxruntime::kCpuExecutionProvider) != 0)
+      if (strcmp(ortApi.EpDevice_EpName(ep_devices[i]), "CPUExecutionProvider") != 0)
         CHECK_ORT(ortApi.SessionOptionsAppendExecutionProvider_V2(sessionOptions, ortEnvironment, &ep_devices[i], 1,
                                                                   option_keys, option_values, 2));
     }
@@ -134,7 +135,9 @@ int main() {
     std::vector<int64_t> input_shape{1, 3, image_dim, image_dim};
     std::vector<float> input_data(3 * image_dim * image_dim, 0.0f);
 
-    loadInputImage(cpuInputFloat, (char*)(get_executable_parent_path() / "Input.png").c_str(), false);
+    auto img_path = "Input_resized.png";
+
+    loadInputImage(cpuInputFloat, (char*)img_path, false);
     for (int i = 0; i < 3 * image_dim * image_dim; i++) {
       input_data[i] = cpuInputFloat[i];
     }
@@ -223,7 +226,9 @@ int main() {
     CHECK_ORT(
         ortApi.CopyTensors(ortEnvironment, output_src_tensor_ptrs.data(), output_dst_tensor_ptrs.data(), stream, 1));
 
-    saveOutputImage(cpuOutputFloat, (char*)(get_executable_parent_path() / "output.png").c_str(), false);
+    auto output_path = "output.png";
+    saveOutputImage(cpuOutputFloat, (char*)output_path, false);
+    std::cout << "Output image saved\n";
 
     ortApi.ReleaseMemoryInfo(input_memory_info_agnostic);
   } catch (std::exception& ex) {
